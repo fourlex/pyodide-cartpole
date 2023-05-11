@@ -21,7 +21,7 @@ async function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
 
-  ctx.scale(canvas.width / 2, -canvas.height / 2);
+  ctx.scale(canvas.width / 5, -canvas.height / 5);
   ctx.translate(1,-1);
 
   ctx.fillStyle = "rgb(0,0,0)";
