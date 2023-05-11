@@ -1,22 +1,38 @@
-import { loadPyodide } from 'https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.mjs';
-
+import { asyncRun } from "./py-worker.js";
 async function main() {
-  let pyodide = await loadPyodide();
-  console.log('python version: ' + pyodide.runPython('import sys; sys.version'));
+  await asyncRun(`
+    from cartpole.models import TwoCartsPendulum;
+    model = TwoCartsPendulum();
+  `, {});
+  window.requestAnimationFrame(draw);
+}
 
-  await pyodide.loadPackage("numpy");
-  console.log('numpy version: ' + pyodide.runPython('import numpy; numpy.version.version'));
+async function draw() {
+  let msg = await asyncRun(`
+    from pyodide.ffi import to_js
 
-  await pyodide.loadPackage("scipy");
-  console.log('scipy version: ' + pyodide.runPython('import scipy; scipy.__version__'));
+    state = state + dt * model.dstate_dt(state)
+    to_js(model.equilibrum().tolist())
+  `);
+  // console.log(msg);
+  let state = msg.results;
+  const x1 = state[0];
+  const x2 = state[1];
 
-  await pyodide.loadPackage('python_code/dist/cartpole-0.0.1-py3-none-any.whl');
-  console.log('cartole params: ');
-  console.log(pyodide.runPython(`
-    from cartpole.models import TwoCartsPendulum
-    model = TwoCartsPendulum()
-    model.params
-  `).toJs());
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+
+  ctx.scale(canvas.width / 2, -canvas.height / 2);
+  ctx.translate(1,-1);
+
+  ctx.fillStyle = "rgb(0,0,0)";
+  ctx.fillRect(x1 - 0.1, -0.1, 0.2, 0.2);
+  ctx.fillRect(x2 - 0.1, -0.1, 0.2, 0.2);
+
+  ctx.restore();
+
+  window.requestAnimationFrame(draw);
 }
 
 main();
