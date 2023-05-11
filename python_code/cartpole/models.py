@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.integrate as integrate
 
 
 class LinearSystem:
@@ -21,6 +22,7 @@ class LinearSystem:
 
 class TwoCartsPendulum:
     def __init__(self,
+                 init_state=None,
                  mu=10,           # жесткость пружины
                  g=9.81,         # ускорение свободного падения
                  k=0.01 ,        # коэффициент вязкого трения
@@ -31,6 +33,18 @@ class TwoCartsPendulum:
                  L=1,          # длина нерастянутой пружины
                 ):
         self.params = (mu, g, k, M1, M2, m, l, L)
+        self.time_elapsed = 0
+        if init_state is None:
+            self.state = self.equilibrum() + 0.001
+        else:
+            self.state = init_state
+
+    def step(self, dt):
+        ivp_res = integrate.solve_ivp(lambda t, y: self.dstate_dt(y, 0),
+                    t_span=[0,dt],
+                    y0=self.state)
+        self.state = ivp_res.y[:,-1]
+        self.time_elapsed += dt
 
     def dstate_dt(self, state, u):
         mu, g, k, M1, M2, m, l, L = self.params

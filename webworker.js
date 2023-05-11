@@ -5,9 +5,20 @@
 // and `.wasm` files as well:
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js");
 
+var init = false;
+
 async function loadPyodideAndPackages() {
-  self.pyodide = await loadPyodide();
-  await self.pyodide.loadPackage(["numpy", "pytz", 'python_code/dist/cartpole-0.0.1-py3-none-any.whl']);
+  if (!init) {
+    self.pyodide = await loadPyodide();
+    await self.pyodide.loadPackage(["numpy", "scipy", 'python_code/dist/cartpole-0.0.1-py3-none-any.whl']);
+    await self.pyodide.runPythonAsync(`
+      from cartpole.models import TwoCartsPendulum
+      import js
+      from pyodide.ffi import to_js
+      model = TwoCartsPendulum()
+    `);
+    init = true;
+  }
 }
 let pyodideReadyPromise = loadPyodideAndPackages();
 
