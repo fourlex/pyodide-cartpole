@@ -3,6 +3,12 @@ import { asyncRun } from "./py-worker.js";
 var modelParams;
 
 async function main() {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgb(0,0,0)";
+  ctx.fillText("Loading...",20,20)
+
   await asyncRun(`
     from cartpole.models import TwoCartsPendulum
     import js
@@ -44,7 +50,7 @@ async function draw() {
 
   // time
   ctx.fillStyle = "rgb(0,0,0)";
-  ctx.fillText(t.toFixed(1),20,20)
+  ctx.fillText("t = " + t.toFixed(1) + "s",20,20)
 
   ctx.scale(200, -200);
   ctx.translate(1,-1);
