@@ -1,6 +1,16 @@
 import { asyncRun } from "./py-worker.js";
 
 var modelParams;
+var firstDrawMoment = -1;
+
+async function resetSimulation() {
+  firstDrawMoment = -1;
+  await asyncRun(`
+    model = TwoCartsPendulum(init_state=np.array([0.0,1,np.pi + 0.1,0,0,0]))
+  `); 
+}
+
+document.getElementById("reset").onclick = resetSimulation;
 
 async function main() {
   const canvas = document.getElementById("canvas");
@@ -14,9 +24,9 @@ async function main() {
     import js
     import numpy as np
     from pyodide.ffi import to_js
-    model = TwoCartsPendulum(init_state=np.array([0.0,1,np.pi + 0.1,0,0,0]))
   `);
 
+  await resetSimulation();
   let msg = await asyncRun(`
     to_js(model.params)
   `);
@@ -25,13 +35,12 @@ async function main() {
   window.requestAnimationFrame(draw);
 }
 
-var first_draw_moment = -1;
 async function draw() {
   let t = performance.now()/1000;
-  if (first_draw_moment == -1) {
-    first_draw_moment = t;
+  if (firstDrawMoment == -1) {
+    firstDrawMoment = t;
   }
-  t -= first_draw_moment;
+  t -= firstDrawMoment;
 
   let msg = await asyncRun(`
     model.step(dt=js.t-model.time_elapsed)
